@@ -9,9 +9,20 @@ import { OrderModule } from './module/order/order.module';
 import { BlogModule } from './module/blog/blog.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './module/user/user.module';
+import { PaymentModule } from './module/payment/payment.module';
 
 @Module({
-  imports: [AuthModule, ProductModule, CartModule, CategoryModule, OrderModule, BlogModule, PrismaModule, UserModule],
+  imports: [
+    AuthModule,
+    ProductModule,
+    CartModule,
+    CategoryModule,
+    OrderModule,
+    BlogModule,
+    PrismaModule,
+    UserModule,
+    PaymentModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

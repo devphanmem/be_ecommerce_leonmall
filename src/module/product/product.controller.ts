@@ -55,4 +55,8 @@ export class ProductController {
   async deleteProduct(@Param('id') id: string) {
     return this.productService.deleteProduct(id);
   }
+  @Get(':id/gemini-response')
+  async getGeminiResponse(@Param('id') id: string) {
+    return this.productService.getGeminiResponseForProduct(id);
+  }
 }

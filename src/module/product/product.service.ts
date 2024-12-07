@@ -5,10 +5,14 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import axios from 'axios';
 
 @Injectable()
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
+  private readonly GEMINI_API_KEY = process.env.GEMINI_API_KEY; // Lấy API Key từ biến môi trường
+  private readonly GEMINI_API_URL =
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
 
   // Lấy tất cả sản phẩm
   async getAllProducts() {
@@ -130,6 +134,100 @@ export class ProductService {
       if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException(
         'Không thể xóa sản phẩm. Vui lòng thử lại sau.',
+      );
+    }
+  }
+
+  async getGeminiResponseForProduct(id: string) {
+    try {
+      const product = await this.prisma.product.findUnique({
+        where: { id },
+        include: { category: true },
+      });
+
+      if (!product) {
+        throw new NotFoundException(`Không tìm thấy sản phẩm với ID "${id}".`);
+      }
+
+      // Tạo câu hỏi cho Gemini AI từ dữ liệu sản phẩm
+      const prompt = `You are an AI assistant for LeonMall, an e-commerce platform. The customer is asking about the product: ${product.name}. Here's a brief description: ${product.description}. Can you provide more details or answer any questions about this product?`;
+
+      // Gửi câu hỏi đến Gemini API
+      const geminiResponse = await this.sendPromptToGemini(prompt);
+
+      return {
+        status: 'success',
+        message: 'Gemini response fetched successfully',
+        data: geminiResponse,
+      };
+    } catch (error) {
+      console.error(
+        '[ProductService][getGeminiResponseForProduct] Lỗi:',
+        error.message,
+      );
+      throw new InternalServerErrorException(
+        'Không thể lấy phản hồi từ Gemini. Vui lòng thử lại sau.',
+      );
+    }
+  }
+
+  // Hàm gửi yêu cầu đến Gemini API và nhận phản hồi
+  private async sendPromptToGemini(prompt: string) {
+    if (!prompt.trim()) {
+      throw new Error('Prompt cannot be empty.');
+    }
+
+    try {
+      const response = await axios.post(
+        this.GEMINI_API_URL,
+        {
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt, // Text prompt truyền vào Gemini API
+                },
+              ],
+            },
+          ],
+        },
+        {
+          params: { key: this.GEMINI_API_KEY },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      const resultText =
+        response.data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!resultText) {
+        throw new Error('No valid response returned from Gemini.');
+      }
+      return resultText;
+    } catch (error) {
+      throw new Error('Error communicating with Gemini API: ' + error.message);
+    }
+  }
+  async searchProducts(query: string) {
+    try {
+      const products = await this.prisma.product.findMany({
+        where: {
+          name: {
+            contains: query, // Tìm kiếm sản phẩm theo tên
+            mode: 'insensitive', // Không phân biệt chữ hoa/thường
+          },
+        },
+      });
+
+      if (!products.length) {
+        throw new NotFoundException('No products found for the search.');
+      }
+
+      return products;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Failed to search for products. Please try again later.',
       );
     }
   }
