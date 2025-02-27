@@ -42,7 +42,7 @@ export class CartService {
       return {
         status: 'success',
         message: 'Lấy giỏ hàng thành công.',
-        data: cart.cartItems.map((item) => ({
+        data: cart.cartItems.map((item: { product: any; quantity: any; }) => ({
           product: item.product,
           quantity: item.quantity,
         })),

@@ -9,6 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "start:uat": "nest start",
     "start:dev": "nodemon --watch src --ext ts --exec \"node -r tsconfig-paths/register -r ts-node/register src/main.ts\"",
     "start:debug": "nodemon --watch src --exec \"node --inspect-brk -r tsconfig-paths/register -r ts-node/register src/main.ts\"",
     "start:prod": "node dist/main",

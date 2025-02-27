@@ -30,7 +30,7 @@ export class OrderService {
       }
 
       let total = 0;
-      const orderItems = cart.cartItems.map((cartItem) => {
+      const orderItems = cart.cartItems.map((cartItem: { product: { price: number; id: any; }; quantity: number; }) => {
         total += cartItem.product.price * cartItem.quantity;
 
         return {

@@ -20,7 +20,7 @@ export class BlogService {
       return {
         status: 'success',
         message: 'Lấy danh sách blog thành công',
-        data: blogs.map((blog) => ({
+        data: blogs.map((blog: { author: any; }) => ({
           ...blog,
           author: blog.author || null, // Xử lý trường hợp author null
         })),
